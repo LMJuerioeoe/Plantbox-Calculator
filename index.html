@@ -194,6 +194,613 @@ th { background: #f4f7f4; }
   .summary { grid-template-columns: 1fr 1fr; }
 }
 
+body.mobile .layout {
+  grid-template-columns: 1fr;
+}
+
+body.mobile .controls {
+  position: static;
+}
+
+body.mobile .summary {
+  grid-template-columns: 1fr;
+}
+  .controls { position: static; }
+  .summary { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 560px) {
+  .summary { grid-template-columns: 1fr; }
+  .row { grid-template-columns: 1fr; }
+}
+
+@media print {
+  body { background: white; }
+  header, .controls, button { display: none; }
+  .layout { display: block; padding: 0; }
+  .output { border: none; }
+  .canvas-wrap { border: none; overflow: visible; }
+}
+
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Istutuskasti suuruse kalkulaator</h1>
+    <p class="note">Võrdle eri kujuga aiamaa istutuskaste sama paneeli/külje pikkusega. Sobib GitHub Pages lehele ühe failina: <strong>index.html</strong>.</p>
+  </header>  <div style="padding:10px 16px;">
+    <label style="font-weight:700;">Seadme vaade</label>
+    <select id="viewMode" style="width:200px; margin-top:6px;">
+      <option value="auto" selected>Automaatne</option>
+      <option value="desktop">PC vaade</option>
+      <option value="mobile">Telefoni vaade</option>
+    </select>
+  </div>  <main class="layout">
+    <section class="controls">
+      <div class="group">
+        <div class="row">
+          <div>
+            <label for="sideLength">Ühe paneeli pikkus</label>
+            <input id="sideLength" type="number" value="95" min="1" step="1" />
+          </div>
+          <div>
+            <label for="unit">Ühik</label>
+            <select id="unit">
+              <option value="cm" selected>cm</option>
+              <option value="mm">mm</option>
+              <option value="m">m</option>
+            </select>
+          </div>
+        </div><div class="row">
+      <div>
+        <label for="bedHeight">Kasti kõrgus</label>
+        <input id="bedHeight" type="number" value="30" min="0" step="1" />
+      </div>
+      <div>
+        <label for="heightUnit">Kõrguse ühik</label>
+        <select id="heightUnit">
+          <option value="cm" selected>cm</option>
+          <option value="mm">mm</option>
+          <option value="m">m</option>
+        </select>
+      </div>
+    </div>
+
+    <label for="scale">Joonise mõõtkava ekraanil</label>
+    <select id="scale">
+      <option value="1">100%</option>
+      <option value="0.75">75%</option>
+      <option value="0.5" selected>50%</option>
+      <option value="0.35">35%</option>
+      <option value="0.25">25%</option>
+      <option value="0.15">15%</option>
+    </select>
+    <p class="small">Ekraani 100% ei pruugi olla füüsiliselt täpne 1:1, sest monitoride pikslitihedus erineb. Võrdlus joonisel on siiski omavahel õiges mõõtkavas.</p>
+  </div>
+
+  <div class="group">
+    <label>Võrdle neid kaste</label>
+    <div class="checkrow"><input class="poly-check" type="checkbox" value="5" checked /> 5-paneeline kast</div>
+    <div class="checkrow"><input class="poly-check" type="checkbox" value="6" checked /> 6-paneeline kast</div>
+    <div class="checkrow"><input class="poly-check" type="checkbox" value="8" checked /> 8-paneeline kast</div>
+    <div class="checkrow"><input class="poly-check" type="checkbox" value="4" /> 4-paneeline kast</div>
+    <div class="checkrow"><input class="poly-check" type="checkbox" value="7" /> 7-paneeline kast</div>
+    <div class="checkrow"><input class="poly-check" type="checkbox" value="10" /> 10-paneeline kast</div>
+    <div class="checkrow"><input class="poly-check" type="checkbox" value="12" /> 12-paneeline kast</div>
+  </div>
+
+  <div class="group">
+    <label>Joonise lisad</label>
+    <div class="checkrow"><input id="showDiameter" type="checkbox" checked /> Näita välisläbimõõtu</div>
+    <div class="checkrow"><input id="showRadius" type="checkbox" /> Näita välisraadiust</div>
+    <div class="checkrow"><input id="showSideLabel" type="checkbox" checked /> Näita paneeli pikkust</div>
+    <div class="checkrow"><input id="showGrid" type="checkbox" checked /> Näita 1 m ruudustikku</div>
+    <div class="checkrow"><input id="fillSoil" type="checkbox" checked /> Täida kast mullavärviga</div>
+  </div>
+
+  <div class="group">
+    <div class="row">
+      <div>
+        <label for="strokeWidth">Paneeli joone paksus</label>
+        <input id="strokeWidth" type="number" value="8" min="1" max="30" step="1" />
+      </div>
+      <div>
+        <label for="gap">Vahe kastide vahel</label>
+        <input id="gap" type="number" value="110" min="20" step="10" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="woodColor">Paneeli värv</label>
+        <input id="woodColor" type="color" value="#b7793f" />
+      </div>
+      <div>
+        <label for="soilColor">Mulla värv</label>
+        <input id="soilColor" type="color" value="#7a4f2a" />
+      </div>
+    </div>
+  </div>
+
+  <button onclick="draw()">Uuenda</button>
+  <button class="secondary" onclick="downloadSVG()">Laadi joonis SVG-na</button>
+  <button class="secondary" onclick="window.print()">Prindi</button>
+</section>
+
+<section class="output">
+  <div id="summary" class="summary"></div>
+
+  <div class="canvas-wrap">
+    <svg id="svg"></svg>
+  </div>
+
+  <table id="dataTable"></table>
+
+  <div class="formula" style="margin-top:16px;">
+    Pindala: A = n × s² / (4 × tan(π / n))<br />
+    Välisraadius: R = s / (2 × sin(π / n))<br />
+    Mullamaht: V = pindala × kõrgus
+  </div>
+</section>
+
+  </main>  <script>
+    const svgNS = "http://www.w3.org/2000/svg";
+
+    const names = {
+      4: "4-paneeline kast",
+      5: "5-paneeline kast",
+      6: "6-paneeline kast",
+      7: "7-paneeline kast",
+      8: "8-paneeline kast",
+      10: "10-paneeline kast",
+      12: "12-paneeline kast"
+    };
+
+    function el(tag, attrs = {}) {
+      const node = document.createElementNS(svgNS, tag);
+      for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, value);
+      return node;
+    }
+
+    function toCm(value, unit) {
+      if (unit === "mm") return value / 10;
+      if (unit === "m") return value * 100;
+      return value;
+    }
+
+    function fmt(value, digits = 2) {
+      return Number(value).toFixed(digits).replace(/\.00$/, "");
+    }
+
+    function selectedPolygons() {
+      return [...document.querySelectorAll(".poly-check:checked")]
+        .map(input => Number(input.value))
+        .sort((a, b) => a - b);
+    }
+
+    function polygonPoints(n, cx, cy, radius) {
+      const points = [];
+      const start = -Math.PI / 2;
+      for (let i = 0; i < n; i++) {
+        const angle = start + i * 2 * Math.PI / n;
+        points.push({
+          x: cx + radius * Math.cos(angle),
+          y: cy + radius * Math.sin(angle)
+        });
+      }
+      return points;
+    }
+
+    function drawGrid(svg, width, height, stepPx) {
+      const group = el("g", { stroke: "#e5e7eb", "stroke-width": 1 });
+      for (let x = 0; x <= width; x += stepPx) {
+        group.appendChild(el("line", { x1: x, y1: 0, x2: x, y2: height }));
+      }
+      for (let y = 0; y <= height; y += stepPx) {
+        group.appendChild(el("line", { x1: 0, y1: y, x2: width, y2: y }));
+      }
+      svg.appendChild(group);
+    }
+
+    function drawText(svg, text, x, y, size = 15, weight = "400", fill = "#172018") {
+      const t = el("text", {
+        x,
+        y,
+        "text-anchor": "middle",
+        "font-size": size,
+        "font-weight": weight,
+        fill
+      });
+      t.textContent = text;
+      svg.appendChild(t);
+      return t;
+    }
+
+    function drawLineLabel(svg, x1, y1, x2, y2, label, labelOffset = 20) {
+      const group = el("g", { stroke: "#172018", "stroke-width": 2, fill: "#172018" });
+      group.appendChild(el("line", { x1, y1, x2, y2 }));
+      group.appendChild(el("line", { x1, y1: y1 - 7, x2: x1, y2: y1 + 7 }));
+      group.appendChild(el("line", { x1: x2, y1: y2 - 7, x2, y2: y2 + 7 }));
+      svg.appendChild(group);
+      drawText(svg, label, (x1 + x2) / 2, y1 + labelOffset, 14, "700");
+    }
+
+    function buildData() {
+      const sideInput = Number(document.getElementById("sideLength").value);
+      const unit = document.getElementById("unit").value;
+      const heightInput = Number(document.getElementById("bedHeight").value);
+      const heightUnit = document.getElementById("heightUnit").value;
+      const sideCm = toCm(sideInput, unit);
+      const heightCm = toCm(heightInput, heightUnit);
+      const polys = selectedPolygons();
+
+      return polys.map(n => {
+        const areaCm2 = (n * sideCm * sideCm) / (4 * Math.tan(Math.PI / n));
+        const areaM2 = areaCm2 / 10000;
+        const radiusCm = sideCm / (2 * Math.sin(Math.PI / n));
+        const diameterCm = radiusCm * 2;
+        const perimeterCm = n * sideCm;
+        const volumeM3 = areaM2 * (heightCm / 100);
+        const liters = volumeM3 * 1000;
+
+        return {
+          n,
+          name: names[n] || `${n}-paneeline kast`,
+          sideInput,
+          unit,
+          sideCm,
+          heightInput,
+          heightUnit,
+          heightCm,
+          areaCm2,
+          areaM2,
+          radiusCm,
+          diameterCm,
+          perimeterCm,
+          volumeM3,
+          liters
+        };
+      });
+    }
+
+    function draw() {
+      const data = buildData();
+      const scale = Number(document.getElementById("scale").value);
+      const strokeWidth = Number(document.getElementById("strokeWidth").value);
+      const gap = Number(document.getElementById("gap").value);
+      const showDiameter = document.getElementById("showDiameter").checked;
+      const showRadius = document.getElementById("showRadius").checked;
+      const showSideLabel = document.getElementById("showSideLabel").checked;
+      const showGrid = document.getElementById("showGrid").checked;
+      const fillSoil = document.getElementById("fillSoil").checked;
+      const woodColor = document.getElementById("woodColor").value;
+      const soilColor = document.getElementById("soilColor").value;
+
+      const pxPerCm = 37.7952755906;
+      const px = cm => cm * pxPerCm * scale;
+      const maxR = Math.max(...data.map(d => px(d.radiusCm)), 80);
+      const itemWidth = maxR * 2 + gap;
+      const top = 92;
+      const bottom = 110;
+      const width = Math.max(900, data.length * itemWidth + 80);
+      const height = maxR * 2 + top + bottom;
+
+      const svg = document.getElementById("svg");
+      svg.innerHTML = "";
+      svg.setAttribute("width", width);
+      svg.setAttribute("height", height);
+      svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+
+      if (showGrid) drawGrid(svg, width, height, px(100));
+
+      data.forEach((d, i) => {
+        const r = px(d.radiusCm);
+        const cx = 40 + itemWidth * i + itemWidth / 2;
+        const cy = top + maxR;
+        const points = polygonPoints(d.n, cx, cy, r);
+        const pointString = points.map(p => `${p.x},${p.y}`).join(" ");
+
+        drawText(svg, d.name, cx, 26, 18, "800");
+        drawText(svg, `${d.n} paneeli × ${fmt(d.sideCm)} cm`, cx, 50, 14, "700", "#465348");
+        drawText(svg, `Pindala ${fmt(d.areaM2)} m²`, cx, 72, 14, "700", "#2f7d32");
+
+        svg.appendChild(el("polygon", {
+          points: pointString,
+          fill: fillSoil ? soilColor : "none",
+          "fill-opacity": fillSoil ? "0.28" : "0",
+          stroke: woodColor,
+          "stroke-width": strokeWidth,
+          "stroke-linejoin": "round"
+        }));
+
+        points.forEach(p => {
+          svg.appendChild(el("circle", {
+            cx: p.x,
+            cy: p.y,
+            r: Math.max(3, strokeWidth / 2),
+            fill: woodColor
+          }));
+        });
+
+        if (showDiameter) {
+          const y = cy + r + 34;
+          drawLineLabel(svg, cx - r, y, cx + r, y, `välisläbimõõt ${fmt(d.diameterCm)} cm`);
+        }
+
+        if (showRadius) {
+          const p = points[0];
+          svg.appendChild(el("line", {
+            x1: cx,
+            y1: cy,
+            x2: p.x,
+            y2: p.y,
+            stroke: "#172018",
+            "stroke-width": 2,
+            "stroke-dasharray": "6 5"
+          }));
+          svg.appendChild(el("circle", { cx, cy, r: 4, fill: "#172018" }));
+          drawText(svg, `R ${fmt(d.radiusCm)} cm`, (cx + p.x) / 2 + 32, (cy + p.y) / 2 - 8, 13, "700");
+        }
+
+        if (showSideLabel) {
+          const bottomPoints = [...points].sort((a, b) => b.y - a.y).slice(0, 2).sort((a, b) => a.x - b.x);
+          const p1 = bottomPoints[0];
+          const p2 = bottomPoints[1];
+          if (p1 && p2) {
+            const y = Math.max(p1.y, p2.y) + 22;
+            drawLineLabel(svg, p1.x, y, p2.x, y, `paneel ${fmt(d.sideCm)} cm`, 19);
+          }
+        }
+      });
+
+      drawSummary(data);
+      drawTable(data);
+    }
+
+    function drawSummary(data) {
+      const bestArea = data.reduce((best, d) => d.areaM2 > best.areaM2 ? d : best, data[0]);
+      const smallest = data.reduce((best, d) => d.diameterCm < best.diameterCm ? d : best, data[0]);
+      const mostSoil = data.reduce((best, d) => d.liters > best.liters ? d : best, data[0]);
+
+      document.getElementById("summary").innerHTML = `
+        <div class="metric">
+          <div class="label">Suurim kasvupind</div>
+          <div class="value">${bestArea ? bestArea.name : "-"}</div>
+        </div>
+        <div class="metric">
+          <div class="label">Suurim pindala</div>
+          <div class="value">${bestArea ? fmt(bestArea.areaM2) : "-"} m²</div>
+        </div>
+        <div class="metric">
+          <div class="label">Kompaktseim läbimõõdu järgi</div>
+          <div class="value">${smallest ? smallest.name : "-"}</div>
+        </div>
+        <div class="metric">
+          <div class="label">Suurim mullavajadus</div>
+          <div class="value">${mostSoil ? fmt(mostSoil.liters, 0) : "-"} L</div>
+        </div>
+      `;
+    }
+
+    function drawTable(data) {
+      const table = document.getElementById("dataTable");
+      table.innerHTML = `
+        <tr>
+          <th>Kast</th>
+          <th>Paneele</th>
+          <th>Ühe paneeli pikkus</th>
+          <th>Välisläbimõõt</th>
+          <th>Välisraadius</th>
+          <th>Kasvupindala</th>
+          <th>Ümbermõõt</th>
+          <th>Kõrgus</th>
+          <th>Ligikaudne mullamaht</th>
+        </tr>
+      `;
+
+      data.forEach(d => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${d.name}</td>
+          <td>${d.n}</td>
+          <td>${fmt(d.sideCm)} cm</td>
+          <td>${fmt(d.diameterCm)} cm</td>
+          <td>${fmt(d.radiusCm)} cm</td>
+          <td>${fmt(d.areaM2)} m²</td>
+          <td>${fmt(d.perimeterCm)} cm</td>
+          <td>${fmt(d.heightCm)} cm</td>
+          <td>${fmt(d.liters, 0)} L</td>
+        `;
+        table.appendChild(row);
+      });
+    }
+
+    function downloadSVG() {
+      const svg = document.getElementById("svg");
+      const serializer = new XMLSerializer();
+      const source = serializer.serializeToString(svg);
+      const blob = new Blob([source], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "istutuskasti-vordlus.svg";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    document.querySelectorAll("input, select").forEach(control => {
+      control.addEventListener("input", draw);
+      control.addEventListener("change", draw);
+    });
+
+    document.getElementById("viewMode").addEventListener("change", (e)=>{
+      const mode = e.target.value;
+      document.body.classList.remove("mobile");
+      if(mode === "mobile") document.body.classList.add("mobile");
+    });
+
+    draw();
+  </script></body>
+</html>  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 16px;
+  padding: 16px;
+}
+
+.controls, .output, .card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.controls {
+  height: fit-content;
+  position: sticky;
+  top: 16px;
+}
+
+.group {
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.group:last-child { border-bottom: 0; margin-bottom: 0; padding-bottom: 0; }
+
+label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  font-size: 14px;
+  background: white;
+}
+
+input[type="checkbox"] {
+  width: auto;
+  margin-right: 8px;
+}
+
+input[type="color"] {
+  height: 42px;
+  padding: 4px;
+}
+
+button {
+  cursor: pointer;
+  background: var(--accent);
+  color: white;
+  border: none;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+button.secondary { background: #465348; }
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.checkrow {
+  display: flex;
+  align-items: center;
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.small {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 8px 0 0;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.metric {
+  background: #f7faf7;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.metric .label {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.metric .value {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.canvas-wrap {
+  overflow: auto;
+  background: white;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+svg {
+  background: white;
+  display: block;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  font-size: 14px;
+}
+
+th, td {
+  border: 1px solid var(--border);
+  padding: 9px;
+  text-align: center;
+}
+
+th { background: #f4f7f4; }
+
+.formula {
+  font-family: Consolas, monospace;
+  background: #f4f7f4;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+@media (max-width: 950px) {
+  .layout { grid-template-columns: 1fr; }
+  .controls { position: static; }
+  .summary { grid-template-columns: 1fr 1fr; }
+}
+
 @media (max-width: 560px) {
   .summary { grid-template-columns: 1fr; }
   .row { grid-template-columns: 1fr; }
