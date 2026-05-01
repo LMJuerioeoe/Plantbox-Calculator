@@ -26,7 +26,5 @@ Veebipõhine tööriist aiamaa **istutuskastide suuruste võrdlemiseks ja visual
 
 ---
 
-## 🚀 Kasutamine GitHub Pages’is
-
-1. Loo uus repository (nt `istutuskast`)
-2. Lisa fail:
+## GitHub Page
+https://lmjuerioeoe.github.io/Plantbox-Calculator/
